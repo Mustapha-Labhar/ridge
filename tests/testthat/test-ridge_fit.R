@@ -79,3 +79,48 @@ test_that("ridge does not penalize the intercept", {
   expect_true(abs(model$coefficients[1]) > 10)
   expect_true(abs(model$coefficients[2]) < 1)
 })
+
+
+test_that("ridge_fit returns named coefficients", {
+  x <- matrix(
+    c(1, 2,
+      2, 3,
+      3, 5,
+      4, 7,
+      5, 11),
+    ncol = 2,
+    byrow = TRUE
+  )
+
+  y <- c(3, 5, 8, 11, 17)
+
+  model <- ridge_fit(x, y, lambda = 1)
+
+  expect_named(
+    model$coefficients,
+    c("(Intercept)", "x1", "x2")
+  )
+})
+
+
+test_that("ridge_fit preserves predictor names", {
+  x <- matrix(
+    c(1, 2,
+      2, 3,
+      3, 5,
+      4, 7,
+      5, 11),
+    ncol = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("age", "income"))
+  )
+
+  y <- c(3, 5, 8, 11, 17)
+
+  model <- ridge_fit(x, y, lambda = 1)
+
+  expect_named(
+    model$coefficients,
+    c("(Intercept)", "age", "income")
+  )
+})

@@ -20,7 +20,14 @@ ridge <- function(x, y, lambda = 1) {
     stop("lambda must be a single non-negative numeric value.")
   }
 
+  predictor_names <- colnames(x)
+
+  if (is.null(predictor_names)) {
+    predictor_names <- paste0("x", seq_len(ncol(x)))
+  }
+
   x <- cbind(1, x)
+  colnames(x) <- c("(Intercept)", predictor_names)
 
   p <- ncol(x)
 
@@ -32,8 +39,16 @@ ridge <- function(x, y, lambda = 1) {
     crossprod(x, y)
   )
 
-  list(
+  names(coefficients) <- colnames(x)
+
+  result <- list(
     coefficients = as.vector(coefficients),
     lambda = lambda
   )
+
+  names(result$coefficients) <- c("(Intercept)", predictor_names)
+
+  class(result) <- "ridge_model"
+
+  result
 }
