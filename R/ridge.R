@@ -94,12 +94,22 @@ ridge <- function(x, y, lambda = 1) {
   names(coefficients) <- colnames(x)
 
   # ----------------------------------------------------------
-  # 8. Construct result
+  # 8. Calculate fitted values and residuals
+  # ----------------------------------------------------------
+
+  fitted_values <- as.vector(x %*% coefficients)
+
+  residual_values <- as.vector(y - fitted_values)
+
+  # ----------------------------------------------------------
+  # 9. Construct result
   # ----------------------------------------------------------
 
   result <- list(
     coefficients = as.vector(coefficients),
-    lambda = lambda
+    lambda = lambda,
+    fitted.values = fitted_values,
+    residuals = residual_values
   )
 
   names(result$coefficients) <- c(
