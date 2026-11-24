@@ -124,3 +124,98 @@ test_that("ridge_fit preserves predictor names", {
     c("(Intercept)", "age", "income")
   )
 })
+
+
+
+
+
+test_that("ridge rejects non-finite predictors", {
+
+  x <- matrix(c(1, 2, 3, 4), ncol = 1)
+  y <- c(2, 4, 6, 8)
+
+  x_na <- x
+  x_na[1, 1] <- NA_real_
+
+  x_inf <- x
+  x_inf[1, 1] <- Inf
+
+  expect_error(ridge(x_na, y))
+  expect_error(ridge(x_inf, y))
+})
+
+
+test_that("ridge rejects non-finite responses", {
+
+  x <- matrix(1:4, ncol = 1)
+
+  y_na <- c(2, NA_real_, 6, 8)
+  y_inf <- c(2, 4, Inf, 8)
+
+  expect_error(ridge(x, y_na))
+  expect_error(ridge(x, y_inf))
+})
+
+
+test_that("ridge rejects invalid lambda values", {
+
+  x <- matrix(1:4, ncol = 1)
+  y <- c(2, 4, 6, 8)
+
+  expect_error(ridge(x, y, lambda = Inf))
+  expect_error(ridge(x, y, lambda = NaN))
+})
+
+
+test_that("ridge rejects empty predictor matrices", {
+
+  x <- matrix(numeric(0), nrow = 4, ncol = 0)
+  y <- c(2, 4, 6, 8)
+
+  expect_error(ridge(x, y))
+})
+
+
+test_that("ridge handles perfectly collinear predictors with positive lambda", {
+
+  x <- cbind(
+    x1 = 1:10,
+    x2 = 2 * (1:10)
+  )
+
+  y <- 3 + 2 * x[, 1]
+
+  model <- ridge(x, y, lambda = 1)
+
+  expect_true(all(is.finite(model$coefficients)))
+  expect_named(
+    model$coefficients,
+    c("(Intercept)", "x1", "x2")
+  )
+})
+
+
+
+
+test_that("ridge_fit accepts a numeric vector as x", {
+
+  x <- 1:10
+  y <- 2 + 3 * x
+
+  model <- ridge_fit(x, y, lambda = 1)
+
+  expect_s3_class(model, "ridge_model")
+  expect_length(model$coefficients, 2)
+})
+
+
+test_that("ridge_fit rejects a non-vector response", {
+
+  x <- matrix(seq_len(12), ncol = 2)
+  y <- matrix(seq_len(6), nrow = 3)
+
+  expect_error(
+    ridge_fit(x, y, lambda = 1),
+    "y must be a numeric vector"
+  )
+})

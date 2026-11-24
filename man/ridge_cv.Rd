@@ -19,9 +19,18 @@ regularization parameters to evaluate.}
 \item{seed}{Random seed for reproducibility.}
 }
 \value{
-A list containing the selected lambda, the mean
-cross-validation errors, the minimum error, and fold assignments.
+An object of class "ridge_cv" containing the selected
+lambda, cross-validation errors, fold-specific errors,
+coefficients, and fold assignments.
 }
 \description{
-Select the ridge regularization parameter using cross-validation
+Selects the regularization parameter using k-fold cross-validation
+performed by the C++ implementation.
+}
+\examples{
+x <- matrix(rnorm(80), ncol = 2)
+y <- 2 + 3 * x[, 1] - x[, 2] + rnorm(40)
+result <- ridge_cv(x, y, 10^seq(-3, 2, length.out = 10))
+result$best_lambda
+
 }
