@@ -105,19 +105,18 @@ ridge <- function(x, y, lambda = 1) {
   # 9. Construct result
   # ----------------------------------------------------------
 
-  result <- list(
-    coefficients = as.vector(coefficients),
-    lambda = lambda,
-    fitted.values = fitted_values,
-    residuals = residual_values
-  )
+  # 9. Construct ridge model
+  coefficients <- as.vector(coefficients)
 
-  names(result$coefficients) <- c(
+  names(coefficients) <- c(
     "(Intercept)",
     predictor_names
   )
 
-  class(result) <- "ridge_model"
-
-  result
+  new_ridge_model(
+    coefficients = coefficients,
+    lambda = lambda,
+    fitted_values = fitted_values,
+    residuals = residual_values
+  )
 }
