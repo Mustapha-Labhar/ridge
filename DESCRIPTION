@@ -9,7 +9,8 @@ Description: Tools for fitting and working with ridge regression models,
     including cross-validation for selecting the regularization parameter.
 License: MIT + file LICENSE
 Imports:
-    Rcpp
+    Rcpp,
+    stats
 LinkingTo:
     Rcpp,
     RcppArmadillo

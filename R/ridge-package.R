@@ -1,6 +1,6 @@
-
 ## usethis namespace: start
-#' @importFrom Rcpp sourceCpp
 #' @useDynLib ridge, .registration = TRUE
+#' @importFrom Rcpp evalCpp
 ## usethis namespace: end
+
 NULL
