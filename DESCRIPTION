@@ -7,6 +7,8 @@ Authors@R:
            role = c("aut", "cre"))
 Description: Tools for fitting and working with ridge regression models,
     including cross-validation for selecting the regularization parameter.
+URL: https://mustapha-labhar.github.io/ridge/,
+    https://github.com/Mustapha-Labhar/ridge
 License: MIT + file LICENSE
 Imports:
     graphics,

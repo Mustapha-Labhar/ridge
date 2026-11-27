@@ -1,125 +1,211 @@
-ridge
-Description
+ridge – Ridge Regression Tools
+================
+Mustapha Labhar
 
-ridge est un package R permettant d'ajuster un modèle de régression Ridge avec un paramètre de régularisation lambda.
+- [Overview](#overview)
+  - [Main features](#main-features)
+  - [Installation](#installation)
+  - [Ridge Regression](#ridge-regression)
+    - [Example: fitting a model](#example-fitting-a-model)
+  - [Cross-validation](#cross-validation)
+    - [Cross-validation criteria](#cross-validation-criteria)
+    - [Visualization](#visualization)
+  - [Prediction](#prediction)
+  - [Implementation](#implementation)
+  - [Tests and quality control](#tests-and-quality-control)
+  - [License](#license)
 
-La fonction publique du package est ridge_fit(). Elle ajuste le modèle et retourne un objet de classe ridge_model.
+# Overview
 
-La fonction interne ridge() réalise les calculs nécessaires mais n'est pas exportée directement par le package.
+`ridge` is an R package for fitting Ridge Regression models and
+selecting regularization parameters through K-fold cross-validation.
 
-Installation
+The package combines R implementations with C++ routines using **Rcpp**
+and **RcppArmadillo**.
 
-Le package peut être installé directement depuis GitHub avec :
+## Main features
 
-install.packages("remotes")
+- Ridge Regression with an unpenalized intercept.
+- K-fold cross-validation over a user-defined grid of strictly positive
+  lambda values.
+- Pooled cross-validation error and mean fold error calculations.
+- Automatic selection of the regularization parameter.
+- Visualization of cross-validation errors.
+- A one-standard-error selection rule.
+- S3 methods for fitted models and cross-validation results.
+
+## Installation
+
+You can install the development version from GitHub:
+
+``` r
+# install.packages("remotes")
 remotes::install_github("Mustapha-Labhar/ridge")
+```
 
+Load the package:
 
-Puis charger le package :
-
+``` r
 library(ridge)
+```
 
-Utilisation
+## Ridge Regression
 
-Un exemple simple :
+Ridge Regression estimates the coefficients by minimizing:
 
-x <- matrix(
-  c(1, 2,
-    2, 3,
-    3, 5,
-    4, 7,
-    5, 11),
-  ncol = 2,
-  byrow = TRUE
-)
+$$
+\widehat{\boldsymbol{\beta}}_\lambda =
+\arg\min_{\beta_0,\boldsymbol{\beta}}
+\left[
+\sum_{i=1}^{n}
+(y_i-\beta_0-\mathbf{x}_i^\top\boldsymbol{\beta})^2
++
+\lambda\sum_{j=1}^{p}\beta_j^2
+\right].
+$$
 
-y <- c(3, 5, 8, 11, 17)
+The intercept is not penalized.
+
+### Example: fitting a model
+
+``` r
+set.seed(123)
+
+x <- matrix(rnorm(200), ncol = 2)
+y <- 2 + 3 * x[, 1] - x[, 2] + rnorm(100)
 
 model <- ridge_fit(x, y, lambda = 1)
 
 model
+coef(model)
+fitted(model)
+residuals(model)
+```
 
+The fitted model has class `ridge_model` and supports the following S3
+methods:
 
-Le résultat est :
+- `print()`
+- `coef()`
+- `fitted()`
+- `residuals()`
+- `predict()`
 
-Ridge Regression Model
-----------------------
-Lambda: 1
+## Cross-validation
 
-Coefficients:
-(Intercept)          x1          x2
-  0.0443459   0.5055432   1.2926829
+The `ridge_cv()` function performs K-fold cross-validation over a grid
+of candidate regularization parameters.
 
-Fonction principale
-ridge_fit()
-ridge_fit(x, y, lambda = 1)
+``` r
+lambda_grid <- 10^seq(-3, 2, length.out = 50)
 
+cv_result <- ridge_cv(
+  x,
+  y,
+  lambda_grid = lambda_grid,
+  k = 5,
+  seed = 123
+)
 
-Arguments :
+cv_result$best_lambda
+cv_result$best_mse
+```
 
-x : matrice numérique des variables explicatives ;
+### Cross-validation criteria
 
-y : vecteur numérique de la variable réponse ;
+The package calculates two complementary criteria.
 
-lambda : paramètre de régularisation non négatif.
+The pooled cross-validation error is:
 
-La fonction retourne un objet de classe ridge_model contenant les coefficients estimés et la valeur de lambda.
+$$
+CV_{\mathrm{pooled}}(\lambda)
+=
+\frac{1}{n}
+\sum_{k=1}^{K}
+\sum_{i\in V_k}
+(y_i-\widehat y_i^{(-k)})^2.
+$$
 
-Tests
+The mean fold cross-validation error is:
 
-Le package utilise testthat pour vérifier le fonctionnement de ridge_fit().
+$$
+CV_{\mathrm{fold}}(\lambda)
+=
+\frac{1}{K}
+\sum_{k=1}^{K} E_k(\lambda),
+$$
 
-Les tests couvrent notamment :
+where $E_k(\lambda)$ is the mean squared prediction error in validation
+fold $k$.
 
-le calcul des coefficients ;
+The `best_lambda` returned by `ridge_cv()` minimizes the pooled
+cross-validation error.
 
-le cas lambda = 0 ;
+### Visualization
 
-la validation des arguments ;
+``` r
+plot(cv_result)
+```
 
-les valeurs invalides de lambda ;
+The plot provides two selection criteria:
 
-les noms des coefficients ;
+- `lambda_min`: minimizes the mean fold cross-validation error.
+- `lambda_1se`: selects the largest lambda whose mean fold error is
+  within one estimated standard error of the minimum.
 
-la conservation des noms des variables explicatives ;
+These criteria are based on the mean fold errors and may differ from
+`best_lambda`, which uses the pooled criterion.
 
-la classe de l'objet retourné.
+The plotting method invisibly returns the selected parameters:
 
-Les tests peuvent être exécutés avec :
+``` r
+selected_parameters <- plot(cv_result)
 
+selected_parameters
+```
+
+## Prediction
+
+New observations can be supplied to `predict()`:
+
+``` r
+new_data <- matrix(
+  c(0.5, -0.2,
+    1.0,  0.3),
+  ncol = 2,
+  byrow = TRUE
+)
+
+predict(model, newdata = new_data)
+```
+
+## Implementation
+
+The package uses:
+
+- **R** for the public interface and model methods.
+- **C++** for computational routines.
+- **Rcpp** and **RcppArmadillo** for the interface between R and C++ and
+  matrix computations.
+
+The intercept is excluded from the Ridge penalty.
+
+## Tests and quality control
+
+The package includes automated tests using `testthat`.
+
+Run the tests with:
+
+``` r
 devtools::test()
+```
 
-Vérification du package
+Check the package with:
 
-La commande suivante permet de vérifier le package :
-
+``` r
 devtools::check()
+```
 
+## License
 
-La dernière vérification effectuée a donné :
-
-0 errors
-0 warnings
-0 notes
-
-Organisation du package
-ridge/
-├── DESCRIPTION
-├── LICENSE
-├── LICENSE.md
-├── NAMESPACE
-├── R/
-│   ├── ridge.R
-│   ├── ridge_fit.R
-│   └── print_ridge_model.R
-├── man/
-│   ├── ridge_fit.Rd
-│   └── print.ridge_model.Rd
-├── tests/
-│   └── testthat/
-│       └── test-ridge_fit.R
-└── README.md
-
-Licence
-
-Ce projet est distribué sous licence MIT.
+MIT License.

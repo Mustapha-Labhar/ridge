@@ -1,0 +1,29 @@
+url: https://mustapha-labhar.github.io/ridge/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [github]
+
+  components:
+    intro:
+      text: Get started
+      href: index.html
+
+    reference:
+      text: Reference
+      href: reference/index.html
+
+    articles:
+      text: Articles
+      menu:
+        - text: Ridge Regression
+          href: articles/ridge.html
+
+    github:
+      icon: fa-github
+      href: https://github.com/Mustapha-Labhar/ridge
+      aria-label: GitHub

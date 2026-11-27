@@ -10,6 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+library(ridge)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
