@@ -57,11 +57,19 @@ ridge_cv <- function(x, y, lambda_grid, k = 5, seed = 123) {
     stop("k must be an integer between 2 and nrow(x).")
   }
 
-  if (!is.numeric(lambda_grid) ||
-      length(lambda_grid) == 0L ||
-      any(!is.finite(lambda_grid)) ||
-      any(lambda_grid <= 0)) {
-    stop("lambda_grid must contain strictly positive finite values.")
+  if (
+    !is.numeric(lambda_grid) ||
+    !is.null(dim(lambda_grid)) ||
+    length(lambda_grid) == 0L ||
+    any(!is.finite(lambda_grid)) ||
+    any(lambda_grid <= 0) ||
+    anyDuplicated(lambda_grid) ||
+    is.unsorted(lambda_grid)
+  ) {
+    stop(
+      "lambda_grid must be a strictly increasing numeric vector ",
+      "of strictly positive finite values without duplicates."
+    )
   }
 
   if (length(seed) != 1L ||

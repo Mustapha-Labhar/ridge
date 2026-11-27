@@ -255,3 +255,84 @@ test_that("ridge_cv preserves the absence of the initial random seed", {
 
 
 
+test_that("ridge_cv requires a strictly increasing lambda grid", {
+
+  x <- matrix(rnorm(40), nrow = 20, ncol = 2)
+  y <- rnorm(20)
+
+  # Une grille croissante doit être acceptée
+  expect_s3_class(
+    ridge_cv(
+      x, y,
+      lambda_grid = c(0.01, 0.1, 1, 10),
+      k = 5
+    ),
+    "ridge_cv"
+  )
+
+  # Une grille non triée doit être rejetée
+  expect_error(
+    ridge_cv(
+      x, y,
+      lambda_grid = c(100, 0.01, 10, 1, 0.1),
+      k = 5
+    ),
+    "strictly increasing"
+  )
+
+  # Une grille avec des doublons doit être rejetée
+  expect_error(
+    ridge_cv(
+      x, y,
+      lambda_grid = c(0.01, 0.1, 1, 1, 10),
+      k = 5
+    ),
+    "strictly increasing"
+  )
+})
+
+
+test_that("ridge_cv requires lambda_grid to be a numeric vector", {
+
+  x <- matrix(rnorm(40), nrow = 20, ncol = 2)
+  y <- rnorm(20)
+
+  # Une matrice ne doit pas être acceptée
+  expect_error(
+    ridge_cv(
+      x, y,
+      lambda_grid = matrix(c(0.01, 0.1, 1, 10)),
+      k = 5
+    ),
+    "strictly increasing"
+  )
+})
+
+
+test_that("ridge_cv rejects non-positive or non-finite lambda values", {
+
+  x <- matrix(rnorm(40), nrow = 20, ncol = 2)
+  y <- rnorm(20)
+
+  expect_error(
+    ridge_cv(x, y, lambda_grid = c(0, 1), k = 5),
+    "strictly increasing"
+  )
+
+  expect_error(
+    ridge_cv(x, y, lambda_grid = c(-0.1, 1), k = 5),
+    "strictly increasing"
+  )
+
+  expect_error(
+    ridge_cv(x, y, lambda_grid = c(0.1, Inf), k = 5),
+    "strictly increasing"
+  )
+
+  expect_error(
+    ridge_cv(x, y, lambda_grid = c(0.1, NA_real_), k = 5),
+    "strictly increasing"
+  )
+})
+
+
