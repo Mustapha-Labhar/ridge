@@ -336,3 +336,38 @@ test_that("ridge_cv rejects non-positive or non-finite lambda values", {
 })
 
 
+test_that(
+  "ridge_cv coefficients match ridge_fit at selected lambda",
+  {
+
+    set.seed(123)
+
+    x <- matrix(rnorm(200), ncol = 2)
+
+    y <- 2 + 3 * x[, 1] - x[, 2] + rnorm(100)
+
+    result <- ridge_cv(
+      x = x,
+      y = y,
+      lambda_grid = exp(
+        seq(log(0.001), log(100), length.out = 30)
+      ),
+      k = 5,
+      seed = 123
+    )
+
+    fit_selected <- ridge_fit(
+      x = x,
+      y = y,
+      lambda = result$best_lambda
+    )
+
+    expect_equal(
+      as.numeric(result$coefficients),
+      as.numeric(coef(fit_selected)),
+      tolerance = 1e-10
+    )
+  }
+)
+
+
